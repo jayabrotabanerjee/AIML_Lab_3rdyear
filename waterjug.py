@@ -1,68 +1,69 @@
-import uuid
-from collections import deque
+def print_state(jug1, jug2, jug1_capacity, jug2_capacity):
+    print(f"{jug1_capacity}-gallon jug: {jug1} gallons, {jug2_capacity}-gallon jug: {jug2} gallons")
 
-def get_mac_address():
-    """Retrieve the MAC address of the machine."""
-    mac = ':'.join(['{:02x}'.format((uuid.getnode() >> elements) & 0xff)
-                    for elements in range(0, 2*6, 2)][::-1])
-    return mac
-
-def water_jug_problem(capacity1, capacity2, target):
-    """Solve the water jug problem using BFS."""
-    initial_state = (0, 0)  # Both jugs are empty initially
-    visited = set()
-    queue = deque([(initial_state, [])])
+def water_jug_problem(jug1_capacity, jug2_capacity, target):
+    # Initial state
+    jug1 = 0
+    jug2 = 0
     
-    while queue:
-        (jug1, jug2), path = queue.popleft()
-        
-        # Check if we have reached the target
-        if jug1 == target or jug2 == target:
-            return path + [(jug1, jug2)]
-        
-        # Mark the state as visited
-        visited.add((jug1, jug2))
-        
-        # Possible state transitions
-        possible_states = [
-            (capacity1, jug2),  # Fill jug1
-            (jug1, capacity2),  # Fill jug2
-            (0, jug2),          # Empty jug1
-            (jug1, 0),          # Empty jug2
-            (min(capacity1, jug1 + jug2), jug2 - (min(capacity1, jug1 + jug2) - jug1)), # Transfer from jug2 to jug1
-            (jug1 - (min(capacity2, jug1 + jug2) - jug2), min(capacity2, jug1 + jug2))  # Transfer from jug1 to jug2
-        ]
-        
-        for state in possible_states:
-            if state not in visited:
-                queue.append((state, path + [(jug1, jug2)]))
-    
-    return None  # Return None if no solution is found
+    steps = []
 
-def print_solution(path):
-    """Print the solution path."""
-    if path:
-        print("Steps to reach the target:")
-        for step in path:
-            print(f"Jug1: {step[0]} gallons, Jug2: {step[1]} gallons")
+    # Step 1: Fill the second jug (the one with the smaller capacity)
+    jug2 = jug2_capacity
+    steps.append(f"Fill {jug2_capacity}-gallon jug: ({jug1}, {jug2})")
+    print_state(jug1, jug2, jug1_capacity, jug2_capacity)
+
+    # Step 2: Pour water from the second jug into the first jug
+    pour_amount = min(jug2, jug1_capacity - jug1)
+    jug1 += pour_amount
+    jug2 -= pour_amount
+    steps.append(f"Pour from {jug2_capacity}-gallon jug to {jug1_capacity}-gallon jug: ({jug1}, {jug2})")
+    print_state(jug1, jug2, jug1_capacity, jug2_capacity)
+
+    # Step 3: Empty the first jug if it is full
+    if jug1 == jug1_capacity:
+        jug1 = 0
+        steps.append(f"Empty {jug1_capacity}-gallon jug: ({jug1}, {jug2})")
+        print_state(jug1, jug2, jug1_capacity, jug2_capacity)
+
+    # Step 4: Pour remaining water from the second jug into the first jug
+    pour_amount = min(jug2, jug1_capacity - jug1)
+    jug1 += pour_amount
+    jug2 -= pour_amount
+    steps.append(f"Pour remaining {jug2_capacity}-gallon jug into {jug1_capacity}-gallon jug: ({jug1}, {jug2})")
+    print_state(jug1, jug2, jug1_capacity, jug2_capacity)
+
+    # Step 5: Fill the second jug again
+    jug2 = jug2_capacity
+    steps.append(f"Fill {jug2_capacity}-gallon jug: ({jug1}, {jug2})")
+    print_state(jug1, jug2, jug1_capacity, jug2_capacity)
+
+    # Step 6: Pour water from the second jug into the first jug
+    pour_amount = min(jug2, jug1_capacity - jug1)
+    jug1 += pour_amount
+    jug2 -= pour_amount
+    steps.append(f"Pour from {jug2_capacity}-gallon jug into {jug1_capacity}-gallon jug: ({jug1}, {jug2})")
+    print_state(jug1, jug2, jug1_capacity, jug2_capacity)
+
+    # Check if we have achieved the target amount
+    if jug1 == target or jug2 == target:
+        print(f"Achieved target of {target} gallons in one of the jugs!")
     else:
-        print("No solution found.")
+        print("Failed to achieve target.")
+
+    return steps
 
 def main():
-    jug1_capacity = 4  # Capacity of jug1
-    jug2_capacity = 3  # Capacity of jug2
-    target_amount = 2  # Target amount of water
+    # User inputs
+    jug1_capacity = int(input("Enter the capacity of the first jug (in gallons): "))
+    jug2_capacity = int(input("Enter the capacity of the second jug (in gallons): "))
+    target = int(input("Enter the target amount of water (in gallons): "))
 
-    # Solve the water jug problem
-    solution = water_jug_problem(jug1_capacity, jug2_capacity, target_amount)
-    
-    # Print the solution
-    print_solution(solution)
-    
-    # Print the MAC address
-    mac_address = get_mac_address()
-    print(f"\nMAC Address: {mac_address}")
+    if target > max(jug1_capacity, jug2_capacity):
+        print("Target exceeds the capacity of the jugs. Exiting.")
+        return
+
+    water_jug_problem(jug1_capacity, jug2_capacity, target)
 
 if __name__ == "__main__":
     main()
-
